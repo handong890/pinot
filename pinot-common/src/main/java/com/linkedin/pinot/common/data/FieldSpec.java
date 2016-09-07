@@ -16,7 +16,7 @@
 package com.linkedin.pinot.common.data;
 
 import com.google.common.base.Preconditions;
-import com.linkedin.pinot.common.utils.EqualityUtils;
+import javax.annotation.Nonnull;
 import org.apache.avro.Schema.Type;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,51 +55,51 @@ public abstract class FieldSpec {
   public FieldSpec() {
   }
 
-  public FieldSpec(String name, DataType dataType, boolean isSingleValueField) {
+  public FieldSpec(@Nonnull String name, @Nonnull DataType dataType, boolean isSingleValueField) {
     Preconditions.checkNotNull(name);
-    Preconditions.checkNotNull(dataType);
 
     _name = name;
     _dataType = dataType.getStoredType();
     _isSingleValueField = isSingleValueField;
   }
 
-  public abstract FieldType getFieldType();
-
-  public void setName(String name) {
+  public FieldSpec(@Nonnull String name, @Nonnull DataType dataType, boolean isSingleValueField,
+      @Nonnull Object defaultNullValue) {
     Preconditions.checkNotNull(name);
 
     _name = name;
+    _dataType = dataType.getStoredType();
+    _isSingleValueField = isSingleValueField;
+    _stringDefaultNullValue = defaultNullValue.toString();
   }
+
+  public abstract FieldType getFieldType();
 
   public String getName() {
     return _name;
   }
 
-  public void setDataType(DataType dataType) {
-    Preconditions.checkNotNull(dataType);
+  public void setName(@Nonnull String name) {
+    Preconditions.checkNotNull(name);
 
-    _dataType = dataType.getStoredType();
-    _cachedDefaultNullValue = null;
+    _name = name;
   }
 
   public DataType getDataType() {
     return _dataType;
   }
 
-  public void setSingleValueField(boolean isSingleValueField) {
-    _isSingleValueField = isSingleValueField;
+  public void setDataType(@Nonnull DataType dataType) {
+    _dataType = dataType.getStoredType();
+    _cachedDefaultNullValue = null;
   }
 
   public boolean isSingleValueField() {
     return _isSingleValueField;
   }
 
-  public void setDefaultNullValue(Object defaultNullValue) {
-    Preconditions.checkNotNull(defaultNullValue);
-
-    _stringDefaultNullValue = defaultNullValue.toString();
-    _cachedDefaultNullValue = null;
+  public void setSingleValueField(boolean isSingleValueField) {
+    _isSingleValueField = isSingleValueField;
   }
 
   public Object getDefaultNullValue() {
@@ -177,6 +177,11 @@ public abstract class FieldSpec {
       }
     }
     return _cachedDefaultNullValue;
+  }
+
+  public void setDefaultNullValue(@Nonnull Object defaultNullValue) {
+    _stringDefaultNullValue = defaultNullValue.toString();
+    _cachedDefaultNullValue = null;
   }
 
   /**

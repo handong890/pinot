@@ -17,6 +17,8 @@ package com.linkedin.pinot.common.data;
 
 import com.google.common.base.Preconditions;
 import com.linkedin.pinot.common.utils.EqualityUtils;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
@@ -33,44 +35,64 @@ public final class MetricFieldSpec extends FieldSpec {
   private static final String DEFAULT_DERIVED_METRIC_NULL_VALUE_OF_STRING = "null";
 
   // These two fields are for derived metric fields.
-  private int fieldSize = -1;
-  private DerivedMetricType derivedMetricType = null;
+  private int _fieldSize = -1;
+  private DerivedMetricType _derivedMetricType = null;
 
   // Default constructor required by JSON de-serializer. DO NOT REMOVE.
   public MetricFieldSpec() {
     super();
   }
 
-  public MetricFieldSpec(String name, DataType dataType) {
+  public MetricFieldSpec(@Nonnull String name, @Nonnull DataType dataType) {
     super(name, dataType, true);
+  }
+
+  public MetricFieldSpec(@Nonnull String name, @Nonnull DataType dataType, @Nonnull Object defaultNullValue) {
+    super(name, dataType, true, defaultNullValue);
   }
 
   // For derived metric fields.
-  public MetricFieldSpec(String name, DataType dataType, int fieldSize, DerivedMetricType derivedMetricType) {
+  public MetricFieldSpec(@Nonnull String name, @Nonnull DataType dataType, int fieldSize,
+      @Nonnull DerivedMetricType derivedMetricType) {
     super(name, dataType, true);
+    Preconditions.checkArgument(fieldSize > 0);
     Preconditions.checkNotNull(derivedMetricType);
-    this.fieldSize = fieldSize;
-    this.derivedMetricType = derivedMetricType;
+
+    this._fieldSize = fieldSize;
+    this._derivedMetricType = derivedMetricType;
+  }
+
+  // For derived metric fields.
+  public MetricFieldSpec(@Nonnull String name, @Nonnull DataType dataType, int fieldSize,
+      @Nonnull DerivedMetricType derivedMetricType, @Nonnull Object defaultNullValue) {
+    super(name, dataType, true, defaultNullValue);
+    Preconditions.checkArgument(fieldSize > 0);
+    Preconditions.checkNotNull(derivedMetricType);
+
+    this._fieldSize = fieldSize;
+    this._derivedMetricType = derivedMetricType;
   }
 
   public int getFieldSize() {
-    if (fieldSize < 0) {
+    if (_fieldSize == -1) {
       return getDataType().size();
     } else {
-      return fieldSize;
+      return _fieldSize;
     }
   }
 
+  // Required by JSON de-serializer. DO NOT REMOVE.
   public void setFieldSize(int fieldSize) {
-    this.fieldSize = fieldSize;
+    this._fieldSize = fieldSize;
   }
 
-  public DerivedMetricType getDerivedMetricType() {
-    return derivedMetricType;
+  public @Nullable DerivedMetricType getDerivedMetricType() {
+    return _derivedMetricType;
   }
 
-  public void setDerivedMetricType(DerivedMetricType derivedMetricType) {
-    this.derivedMetricType = derivedMetricType;
+  // Required by JSON de-serializer. DO NOT REMOVE.
+  public void setDerivedMetricType(@Nonnull DerivedMetricType derivedMetricType) {
+    this._derivedMetricType = derivedMetricType;
   }
 
   @JsonIgnore
@@ -86,7 +108,7 @@ public final class MetricFieldSpec extends FieldSpec {
 
   @Override
   public Object getDefaultNullValue() {
-    if (derivedMetricType != null && getDataType() == DataType.STRING) {
+    if (_derivedMetricType != null && getDataType() == DataType.STRING) {
       return DEFAULT_DERIVED_METRIC_NULL_VALUE_OF_STRING;
     } else {
       return super.getDefaultNullValue();
@@ -95,7 +117,7 @@ public final class MetricFieldSpec extends FieldSpec {
 
   @JsonIgnore
   public boolean isDerivedMetric() {
-    return derivedMetricType != null;
+    return _derivedMetricType != null;
   }
 
   /**
@@ -107,14 +129,14 @@ public final class MetricFieldSpec extends FieldSpec {
    * {@link com.linkedin.pinot.common.data.FieldSpec.DataType} for storage, and converted back when needed.
    */
   public enum DerivedMetricType {
-    // HLL derived metric
+    // HLL derived metric type.
     HLL
   }
 
   @Override
   public String toString() {
     return "< field type: METRIC, field name: " + getName() + ", data type: " + getDataType() + ", default null value: "
-        + getDefaultNullValue() + ", field size: " + fieldSize + ", derived metric type: " + derivedMetricType + " >";
+        + getDefaultNullValue() + ", field size: " + _fieldSize + ", derived metric type: " + _derivedMetricType + " >";
   }
 
   @Override
@@ -129,7 +151,7 @@ public final class MetricFieldSpec extends FieldSpec {
           && getDataType() == that.getDataType()
           && getDefaultNullValue().equals(that.getDefaultNullValue())
           && getFieldSize() == that.getFieldSize()
-          && derivedMetricType == that.derivedMetricType;
+          && _derivedMetricType == that._derivedMetricType;
     }
     return false;
   }
@@ -140,7 +162,7 @@ public final class MetricFieldSpec extends FieldSpec {
     result = EqualityUtils.hashCodeOf(result, getDataType());
     result = EqualityUtils.hashCodeOf(result, getDefaultNullValue());
     result = EqualityUtils.hashCodeOf(result, getFieldSize());
-    result = EqualityUtils.hashCodeOf(result, derivedMetricType);
+    result = EqualityUtils.hashCodeOf(result, _derivedMetricType);
     return result;
   }
 }
